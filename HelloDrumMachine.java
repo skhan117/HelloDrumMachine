@@ -3,51 +3,40 @@ import javax.swing.*;
 import javax.sound.midi.*;
 import java.util.*;
 import java.awt.event.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 
 public class HelloDrumMachine {
     
-    JPanel mainPanel;
-
-    ArrayList <JCheckBox> checkBoxList;
-    
+    JPanel mainPanel;    
     ArrayList <JPanel> panelList;
+    ArrayList<Integer> triggerList;
         
     Sequencer sequencer;
     Sequence sequence;
     Track track;
     JFrame theFrame;
     JLabel tempoLabel;
-
     int tempoNumber;
-    
-    ArrayList<Integer> triggerList;
         
-    String [] instrumentNames = {"KICK DRUM", "CLOSED HI-HAT    ", "OPEN HI-HAT", 
-        "SNARE", "CRASH", "CLAP", "HIGH TOM", "HIGH BONGO", "MARACAS", 
-        "WHISTLE", "LOW CONGA", "COWBELL", "SLAP", "MID TOM", 
-        "HIGH AGOGO", "HIGH CONGA"};
-    int[] instruments = {35, 42, 46, 38, 49, 39, 50, 60, 70, 72, 64, 56, 58, 
-        47, 67, 63};
+    String [] instrumentNames = {"KICK DRUM", "CLOSED HI-HAT  ", "OPEN HI-HAT", 
+        "SNARE", "CRASH CYMBAL", "HIGH TOM", "MID TOM"};
+    int[] instruments = {35, 42, 46, 38, 49, 50, 47};
     
     public static void main (String[]args) {
         new HelloDrumMachine().buildGUI();
     }
     
     public void buildGUI() {
-                
+          
+        tempoNumber = 120;
+        
         theFrame = new JFrame("Hello DrumMachine");
         theFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);       
         BorderLayout layout = new BorderLayout();
         JPanel background = new JPanel(layout);
         background.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         background.setBackground(Color.black);
-        
-        //checkBoxList = new ArrayList<JCheckBox>();
-        
-        
+                
         Box buttonBox = new Box(BoxLayout.Y_AXIS);
         
         JButton start = new JButton("Start");
@@ -58,20 +47,22 @@ public class HelloDrumMachine {
         stop.addActionListener(new MyStopListener());
         buttonBox.add(stop);
         
-        tempoNumber = 120;        
-        tempoLabel = new JLabel(" " + Integer.toString(tempoNumber) + " BPM");
+        tempoLabel = new JLabel(" " + Integer.toString(tempoNumber) + " BPM ");
         tempoLabel.setFont(new Font("sanserif", Font.BOLD, 18));
         tempoLabel.setForeground(Color.white);
         
+        buttonBox.add(new JLabel("    "));
         buttonBox.add(tempoLabel);
         
         JButton upTempo = new JButton("+");
-        upTempo.addActionListener(new MyUpTempoListener());
+        upTempo.addActionListener(new MyIncreaseTempoListener());
         buttonBox.add(upTempo);
         
         JButton downTempo = new JButton("-");
-        downTempo.addActionListener(new MyDownTempoListener());
+        downTempo.addActionListener(new MyDecreaseTempoListener());
         buttonBox.add(downTempo);
+
+        buttonBox.add(new JLabel("    "));
 
         JButton clear = new JButton("Clear");
         clear.addActionListener(new MyClearListener());
@@ -79,7 +70,7 @@ public class HelloDrumMachine {
 
         Font bigFont = new Font("sanserif", Font.PLAIN, 18);        
         Box nameBox = new Box(BoxLayout.Y_AXIS);
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 7; i++) {
             Label label = new Label(instrumentNames[i]);
             label.setFont(bigFont);
             nameBox.add((label));
@@ -91,7 +82,7 @@ public class HelloDrumMachine {
         
         theFrame.getContentPane().add(background);
         
-        GridLayout grid = new GridLayout(16, 16);
+        GridLayout grid = new GridLayout(7, 16);
         grid.setVgap(3);
         grid.setHgap(3);
         mainPanel = new JPanel(grid);
@@ -100,37 +91,30 @@ public class HelloDrumMachine {
         panelList = new ArrayList <JPanel>();
         triggerList = new ArrayList <Integer>();
         
-        for (int i = 0; i < 256; i++) {
+        for (int i = 0; i < 112; i++) {
             MyPanel myPanel = new MyPanel();
             myPanel.addMouseListener(new gridMouseListener());
 
             mainPanel.add(myPanel);
-            panelList.add(myPanel);
-            
+            panelList.add(myPanel);         
             triggerList.add(0);
-            
         }    
         
         setUpMidi();
         
-        theFrame.setBounds(50,50,300,300);
+        theFrame.setBounds(0,0,300,300);
         theFrame.pack();
-        theFrame.setSize(800,700);
+        theFrame.setSize(1200,450);
         theFrame.setVisible(true);
     }
-    
-    public void mouseClicked(MouseEvent e) {
-        System.out.println("You clicked something");
-    }
-    
-    
+           
     public void setUpMidi() {
         try {
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
             sequence = new Sequence(Sequence.PPQ, 4);
             track = sequence.createTrack();
-            sequencer.setTempoInBPM(tempoNumber);
+            sequencer.setTempoInBPM(120);
         }
         catch (Exception exc) {
             exc.printStackTrace();
@@ -143,20 +127,13 @@ public class HelloDrumMachine {
         sequence.deleteTrack(track);
         track = sequence.createTrack();
         
-        for (int i = 0; i < 16; i++) {           
+        for (int i = 0; i < 7; i++) {           
             trackList = new int[16];
             
             int key = instruments[i];
             
             for (int j = 0; j < 16; j++) {                
-                //JCheckBox jc = (JCheckBox) checkBoxList.get(j + (16*i));                
-                //if (jc.isSelected()) {
-                //    trackList[j] = key;
-                //}
-                //else {
-                //    trackList[j] = 0;
-                //}
-                
+
                 int assess = triggerList.get(j + (16*i));
                 if (assess == 1) {
                     trackList[j] = key;
@@ -171,12 +148,11 @@ public class HelloDrumMachine {
         
         track.add(makeEvent(192,9,1,0,15));
         
-        try {
-            
+        try {            
             sequencer.setSequence(sequence);
             sequencer.setLoopCount(sequencer.LOOP_CONTINUOUSLY);
             sequencer.start();
-            sequencer.setTempoInBPM(120);
+            sequencer.setTempoInBPM(tempoNumber);
         }
         catch (Exception exc) {
             exc.printStackTrace();
@@ -185,11 +161,11 @@ public class HelloDrumMachine {
     
     public class gridMouseListener implements MouseListener {
         public void mouseClicked (MouseEvent e) {
-            System.out.println("You clicked a grid");
+            //System.out.println("You clicked a grid");
             
             MyPanel p;            
             p = (MyPanel)(e.getSource());
-            System.out.println(p.getNumber());
+            //System.out.println(p.getNumber());
             
             int panelNum = p.getNumber();
             Boolean a = p.getOffOrOn();
@@ -197,12 +173,10 @@ public class HelloDrumMachine {
             if (!a) {
                 p.repaint();
                 p.setOffOrOn(true);
-                //triggerList.set(p.getNumber(), true);
             }
             else {
                 p.repaint();
                 p.setOffOrOn(false);
-                //triggerList.set(p.getNumber(), false);
             }
             
             if (triggerList.get(panelNum) == 0) {
@@ -223,8 +197,7 @@ public class HelloDrumMachine {
         public void actionPerformed(ActionEvent a) {
             buildTrackAndStart();
         }        
-    }
-    
+    }    
     
     public class MyStopListener implements ActionListener {
         public void actionPerformed(ActionEvent a) {
@@ -232,36 +205,38 @@ public class HelloDrumMachine {
         }
     }
     
-    public class MyUpTempoListener implements ActionListener {
+    public class MyIncreaseTempoListener implements ActionListener {
         public void actionPerformed (ActionEvent a) {
-            float tempoFactor = sequencer.getTempoFactor();
-            sequencer.setTempoFactor((float)(tempoFactor + 2));
+            tempoNumber = (int)Math.round(sequencer.getTempoInBPM());
             tempoNumber += 2;
-            tempoLabel.setText(" " + Integer.toString(tempoNumber) + " BPM");
-
+            sequencer.stop();
+            sequencer.setTempoInBPM(tempoNumber);
+            tempoLabel.setText(" " + Integer.toString(tempoNumber) + " BPM ");
+            buildTrackAndStart();
         }
-    }
+    }    
     
-    
-    public class MyDownTempoListener implements ActionListener {
+    public class MyDecreaseTempoListener implements ActionListener {
         public void actionPerformed (ActionEvent a) {
-            float tempoFactor = sequencer.getTempoFactor();
-            sequencer.setTempoFactor((float)(tempoFactor - 2));
+            tempoNumber = (int)Math.round(sequencer.getTempoInBPM());
             tempoNumber -= 2;
-            tempoLabel.setText(" " + Integer.toString(tempoNumber) + " BPM");
+            sequencer.stop();
+            sequencer.setTempoInBPM(tempoNumber);
+            tempoLabel.setText(" " + Integer.toString(tempoNumber) + " BPM ");
+            sequencer.start();
         }
     }
 
     public class MyClearListener implements ActionListener {
         public void actionPerformed (ActionEvent a) {            
-            System.out.println("Cleared triggerlist");
+            //System.out.println("Cleared triggerlist");
             sequencer.stop();
-            for (int y = 0; y < 256; y++) {
+            for (int y = 0; y < 112; y++) {
                 MyPanel mp = (MyPanel) panelList.get(y);
                 mp.setOffOrOn(false);
-                mp.repaint();
                 panelList.set(y, mp);
                 triggerList.set(y, 0);
+                mp.repaint();
             }            
         }
     }
