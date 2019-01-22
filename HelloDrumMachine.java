@@ -4,8 +4,9 @@ import javax.sound.midi.*;
 import java.util.*;
 import java.awt.event.*;
 import java.awt.event.MouseEvent;
+import java.io.*;
 
-public class HelloDrumMachine {
+public class HelloDrumMachine implements Serializable{
     
     JPanel mainPanel;    
     ArrayList <JPanel> panelList;
@@ -39,7 +40,7 @@ public class HelloDrumMachine {
                 
         Box buttonBox = new Box(BoxLayout.Y_AXIS);
         
-        JButton start = new JButton("Start");
+        JButton start = new JButton("Play");
         start.addActionListener(new MyStartListener());
         buttonBox.add(start);
         
@@ -68,6 +69,14 @@ public class HelloDrumMachine {
         clear.addActionListener(new MyClearListener());
         buttonBox.add(clear);
 
+        buttonBox.add(new JLabel("    "));
+        
+        JButton saveButton = new JButton("Save");
+        buttonBox.add(saveButton);
+
+        JButton loadButton = new JButton("Load");
+        buttonBox.add(loadButton);
+        
         Font bigFont = new Font("sanserif", Font.PLAIN, 18);        
         Box nameBox = new Box(BoxLayout.Y_AXIS);
         for (int i = 0; i < 7; i++) {
@@ -264,5 +273,55 @@ public class HelloDrumMachine {
             e.printStackTrace();
         }
         return event;
+    }
+    
+    public class MySaveListener implements ActionListener {
+        public void actionPerformed(ActionEvent ae) {
+            
+            boolean[] patternState = new boolean[112];
+            
+            for (int i = 0; i < 112; i++) {
+                int assess = triggerList.get(i);
+                if (assess == 1) {
+                    patternState[i] = true;
+                }
+            }
+            
+            try {
+                FileOutputStream fileOut = new FileOutputStream(new File("patternState.ser"));
+                ObjectOutputStream objOut = new ObjectOutputStream(fileOut);
+                objOut.writeObject(patternState);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
+    public class MyLoadListener implements ActionListener {
+        public void actionPerformed(ActionEvent ae) {
+            boolean [] inBooleanArray = null;
+            
+            try {
+                FileInputStream fileIn = new FileInputStream(new File("patternState.ser"));
+                ObjectInputStream objIn = new ObjectInputStream(fileIn);
+                inBooleanArray = (boolean[]) objIn.readObject();
+            }
+            catch (Exception ex) {
+                System.out.println("File not found");
+                ex.printStackTrace();
+            }
+            
+            for (int i = 0; i < 112; i++) {
+                if (inBooleanArray[i] == false) {
+                    triggerList.set(i, 0);
+                } 
+                else if (inBooleanArray[i] == true) {
+                    triggerList.set(i, 1);
+                }
+            }
+            sequencer.stop();
+            buildTrackAndStart();
+        }
     }
 }
