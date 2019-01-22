@@ -1,3 +1,3 @@
 # HelloDrumMachine
 
-Drum machine emulator written in Java.
+(https://i.imgur.com/UgoZ7kd.png)
