@@ -1,4 +1,4 @@
-# HelloDrumMachine
+# Hello DrumMachine
 
 A drum machine emulator written in Java.
 
