@@ -1,4 +1,3 @@
 # HelloDrumMachine
 
-![Image of Screenshot1]
-(https://i.imgur.com/UgoZ7kd.png)
+![Screenshot1] (http://i.imgur.com/UgoZ7kd.png)
