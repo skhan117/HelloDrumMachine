@@ -6,7 +6,7 @@ import java.awt.event.*;
 import java.awt.event.MouseEvent;
 import java.io.*;
 
-public class HelloDrumMachine implements Serializable{
+public class HelloDrumMachine implements Serializable {
     
     JPanel mainPanel;    
     ArrayList <JPanel> panelList;
