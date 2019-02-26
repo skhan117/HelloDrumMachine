@@ -19,6 +19,7 @@ public class HelloDrumMachine implements Serializable {
     JLabel tempoLabel;
     int tempoNumber;
         
+    // List of instruments
     String [] instrumentNames = {"KICK DRUM", "CLOSED HI-HAT  ", "OPEN HI-HAT", 
         "SNARE", "CRASH CYMBAL", "HIGH TOM", "MID TOM"};
     int[] instruments = {35, 42, 46, 38, 49, 50, 47};
@@ -27,10 +28,12 @@ public class HelloDrumMachine implements Serializable {
         new HelloDrumMachine().buildGUI();
     }
     
+    // Setup GUI
     public void buildGUI() {
           
         tempoNumber = 120;
         
+        // Add buttons, setup layout, etc.
         theFrame = new JFrame("Hello DrumMachine");
         theFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);       
         BorderLayout layout = new BorderLayout();
@@ -91,6 +94,8 @@ public class HelloDrumMachine implements Serializable {
         
         theFrame.getContentPane().add(background);
         
+        // The GUI will have a main grid component for entering beats.
+        // If more instruments will be added later, then this part will need modification.
         GridLayout grid = new GridLayout(7, 16);
         grid.setVgap(3);
         grid.setHgap(3);
@@ -100,6 +105,7 @@ public class HelloDrumMachine implements Serializable {
         panelList = new ArrayList <JPanel>();
         triggerList = new ArrayList <Integer>();
         
+        // Add a listener to each panel in the grid.
         for (int i = 0; i < 112; i++) {
             MyPanel myPanel = new MyPanel();
             myPanel.addMouseListener(new gridMouseListener());
@@ -111,6 +117,8 @@ public class HelloDrumMachine implements Serializable {
         
         setUpMidi();
         
+        // Finalize GUI dimensions.
+        // May need modification later if more instruments are added.
         theFrame.setBounds(0,0,300,300);
         theFrame.pack();
         theFrame.setSize(1200,450);
@@ -119,6 +127,7 @@ public class HelloDrumMachine implements Serializable {
            
     public void setUpMidi() {
         try {
+            // Open a sequencer and set its tempo.
             sequencer = MidiSystem.getSequencer();
             sequencer.open();
             sequence = new Sequence(Sequence.PPQ, 4);
@@ -136,6 +145,8 @@ public class HelloDrumMachine implements Serializable {
         sequence.deleteTrack(track);
         track = sequence.createTrack();
         
+        // Iterate over all the panels in the grid, and trigger
+        // the appopriate instrument at the appropriate beat.
         for (int i = 0; i < 7; i++) {           
             trackList = new int[16];
             
@@ -158,6 +169,7 @@ public class HelloDrumMachine implements Serializable {
         track.add(makeEvent(192,9,1,0,15));
         
         try {            
+            // Sequencer will loop continuously by default.
             sequencer.setSequence(sequence);
             sequencer.setLoopCount(sequencer.LOOP_CONTINUOUSLY);
             sequencer.start();
@@ -168,6 +180,8 @@ public class HelloDrumMachine implements Serializable {
         }
     }
     
+    // Implement mouse listeners that can change drum patterns,
+    // increase or decrease tempo, and/or save the beat.
     public class gridMouseListener implements MouseListener {
         public void mouseClicked (MouseEvent e) {
             //System.out.println("You clicked a grid");
@@ -250,6 +264,8 @@ public class HelloDrumMachine implements Serializable {
         }
     }
     
+    // makeTracks will iterate over each of the 7 instruments
+    // and trigger the key on the appropriate beat.
     public void makeTracks(int[]list) {
         
         for (int i = 0; i < 16; i++) {
@@ -275,6 +291,7 @@ public class HelloDrumMachine implements Serializable {
         return event;
     }
     
+    // SaveListener will save or load a drum pattern.
     public class MySaveListener implements ActionListener {
         public void actionPerformed(ActionEvent ae) {
             
