@@ -1,3 +1,9 @@
+/*
+    The HelloDrumMachine class sets up a drum machine, deploys its GUI, adds Listeners,
+    and responds to user's ActionEvents by changing up the drum pattern. Can also change
+    the drum pattern's tempo, or save or load it to a file.
+*/
+
 import java.awt.*;
 import javax.swing.*;
 import javax.sound.midi.*;
